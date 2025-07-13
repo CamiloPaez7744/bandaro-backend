@@ -11,6 +11,7 @@ import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcrypt';
 import Redis from 'ioredis';
 import { ConfigService } from '@nestjs/config';
+import { parseFlexibleDurationToSeconds } from 'common/utils/parse-duration';
 
 @Injectable()
 export class AuthService {
@@ -31,7 +32,7 @@ export class AuthService {
       password: hashed,
     });
 
-    const tokens = await this.generateTokens(user.id, user.email);
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.saveRefreshToken(user.id, tokens.refreshToken);
 
     return {
@@ -47,7 +48,7 @@ export class AuthService {
     const isMatch = await bcrypt.compare(dto.password, user.password);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
 
-    const tokens = await this.generateTokens(user.id, user.email);
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.saveRefreshToken(user.id, tokens.refreshToken);
 
     return {
@@ -57,7 +58,10 @@ export class AuthService {
   }
 
   async refresh(userId: string, email: string) {
-    const tokens = await this.generateTokens(userId, email);
+    const user = await this.usersService.findByEmail(email);
+    if (!user) throw new UnauthorizedException();
+
+    const tokens = await this.generateTokens(userId, email, user.role);
     await this.saveRefreshToken(userId, tokens.refreshToken);
     return tokens;
   }
@@ -67,11 +71,21 @@ export class AuthService {
   }
 
   private async saveRefreshToken(userId: string, token: string) {
-    await this.redis.set(`refresh:${userId}`, token, 'EX', 7 * 24 * 60 * 60); // 7 días
+    const rawTTL = this.config.get<string>('JWT_REFRESH_TTL', '7d');
+
+    let ttlInSeconds: number;
+
+    try {
+      ttlInSeconds = parseFlexibleDurationToSeconds(rawTTL);
+    } catch (error) {
+      throw new Error(`Error parsing JWT_REFRESH_TTL: ${error.message}`);
+    }
+
+    await this.redis.set(`refresh:${userId}`, token, 'EX', ttlInSeconds);
   }
 
-  private async generateTokens(userId: string, email: string) {
-    const payload = { sub: userId, email };
+  private async generateTokens(userId: string, email: string, role: string) {
+    const payload = { sub: userId, email, role };
 
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: this.config.get('jwt.accessSecret'),
