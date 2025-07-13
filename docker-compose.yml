@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    container_name: bandaro-nest-postgres
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: bandaro
+      POSTGRES_PASSWORD: bandaro1234
+      POSTGRES_DB: bandaro_db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  mongo:
+    image: mongo:6
+    restart: always
+    container_name: bandaro-nest-mongo
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: bandaro
+      MONGO_INITDB_ROOT_PASSWORD: bandaro1234
+    volumes:
+      - mongodata:/data/db
+
+  redis:
+    image: redis:alpine
+    restart: always
+    container_name: bandaro-nest-redis
+    ports:
+      - '6379:6379'
+
+volumes:
+  pgdata:
+  mongodata:
