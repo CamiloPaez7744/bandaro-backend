@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
+import { UserRole } from 'common/enums/user-role.enum';
 
 @Injectable()
 export class UsersService {
@@ -11,7 +12,10 @@ export class UsersService {
   ) {}
 
   async create(userData: Partial<User>): Promise<User> {
-    const user = this.userRepo.create(userData);
+    const user = this.userRepo.create({
+      ...userData,
+      role: userData.role || UserRole.FREEMIUM,
+    });
     return this.userRepo.save(user);
   }
 

@@ -6,6 +6,7 @@ import { MongoDatabaseModule } from './infrastructure/database/mongo/mongo.modul
 import { RedisModule } from './infrastructure/redis/redis.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
+import { ShotsModule } from './modules/shots/shots.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UsersModule } from './modules/users/users.module';
     RedisModule,
     AuthModule,
     UsersModule,
+    ShotsModule,
   ],
 })
 export class AppModule {}

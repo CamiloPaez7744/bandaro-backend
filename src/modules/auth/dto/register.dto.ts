@@ -9,4 +9,8 @@ export class RegisterDto {
 
   @IsNotEmpty()
   fullName: string;
+
+  @IsOptional()
+  @IsEnum(UserRole, { message: 'role must be one of FREEMIUM | PRO | ADMIN' })
+  role?: UserRole;
 }

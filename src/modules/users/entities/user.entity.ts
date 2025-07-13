@@ -1,3 +1,4 @@
+import { UserRole } from 'common/enums/user-role.enum';
 import {
   Entity,
   Column,
@@ -5,12 +6,6 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-
-export enum UserRole {
-  FREEMIUM = 'FREEMIUM',
-  PRO = 'PRO',
-  ADMIN = 'ADMIN',
-}
 
 @Entity('users')
 export class User {
